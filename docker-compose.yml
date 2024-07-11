@@ -10,11 +10,12 @@ services:
       # - ./config:/etc/odoo
       - ./custom-addons:/mnt/extra-addons
     environment:
-      - PASSWORD_FILE=/run/secrets/postgresql_password
+      # - PASSWORD_FILE=/run/secrets/postgresql_password
+      - PASSWORD_FILE=odoo
       - HOST=db
       - USER=odoo
-    secrets:
-      - postgresql_password
+    # secrets:
+    #   - postgresql_password
     command: odoo -c /etc/odoo/odoo.conf
   db:
     image: postgres:15
