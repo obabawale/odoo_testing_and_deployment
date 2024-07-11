@@ -1,0 +1,3 @@
+[submodule "custom-addons"]
+	path = custom-addons
+	url = git@github.com:obabawale/odoo_module_testing.git
