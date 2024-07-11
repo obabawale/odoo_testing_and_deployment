@@ -4,7 +4,7 @@ FROM odoo:15.0
 RUN pip install -r /mnt/extra-addons/requirements.txt
 
 COPY ./config/odoo.conf /etc/odoo/
-COPY ./custom_addons /mnt/extra-addons
+COPY ./custom-addons /mnt/extra-addons
 
 # Set permissions
 RUN chown -R odoo:odoo /mnt/extra-addons
