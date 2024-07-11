@@ -6,6 +6,8 @@ USER root
 
 COPY custom-addons /mnt/extra-addons
 
+COPY odoo_pg_pass .
+
 # Install custom dependencies if needed
 # RUN pip install -r /mnt/extra-addons/requirements.txt
 
