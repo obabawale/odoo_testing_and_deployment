@@ -1,0 +1,36 @@
+services:
+  web:
+    build: .
+    depends_on:
+      - db
+    ports:
+      - "8069:8069"
+    volumes:
+      # - ob-web-data:/var/lib/odoo
+      # - ./config:/etc/odoo
+      - ./custom-addons:/mnt/extra-addons
+    environment:
+      - PASSWORD_FILE=/run/secrets/postgresql_password
+      - HOST=db
+      - USER=odoo
+    secrets:
+      - postgresql_password
+    command: odoo -c /etc/odoo/odoo.conf
+  db:
+    image: postgres:15
+    container_name: ob-db
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgresql_password
+      - POSTGRES_USER=odoo
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ob-db-data:/var/lib/postgresql/data/pgdata
+    secrets:
+      - postgresql_password
+volumes:
+  ob-web-data:
+  ob-db-data:
+secrets:
+  postgresql_password:
+    file: odoo_pg_pass

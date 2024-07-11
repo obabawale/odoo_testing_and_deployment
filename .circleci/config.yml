@@ -1,0 +1,56 @@
+version: 2.1
+
+executors:
+  docker-executor:
+    docker:
+      - image: circleci/python:3.8
+
+jobs:
+  test:
+    executor: docker-executor
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Docker Image
+          command: docker build -t my-odoo-image .
+      - run:
+          name: Run Docker Compose
+          command: docker-compose -f docker-compose.yml up -d
+      - run:
+          name: Wait for Odoo to start
+          command: ./scripts/wait-for-it.sh web:8069 --timeout=60 --strict -- echo "Odoo is up"
+      - run:
+          name: Run Tests
+          command: docker-compose exec web odoo --test-enable --stop-after-init
+      - run:
+          name: Stop Docker Compose
+          command: docker-compose down
+
+  deploy:
+    docker:
+      - image: circleci/python:3.8
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Docker Image
+          command: docker build -t my-odoo-image .
+      - run:
+          name: Push Docker Image
+          command: |
+            docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+            docker tag my-odoo-image $DOCKER_USERNAME/my-odoo-image:latest
+            docker push $DOCKER_USERNAME/my-odoo-image:latest
+      - run:
+          name: Deploy to Production
+          command: ssh user@your.server 'docker pull $DOCKER_USERNAME/my-odoo-image:latest && docker-compose -f /path/to/your/docker-compose.yml up -d'
+
+workflows:
+  version: 2
+  test_and_deploy:
+    jobs:
+      - test
+      - deploy:
+          requires:
+            - test
