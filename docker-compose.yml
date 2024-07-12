@@ -7,8 +7,8 @@ services:
     ports:
       - "8069:8069"
     volumes:
-      # - ob-web-data:/var/lib/odoo
-      # - ./config:/etc/odoo
+      - ob-web-data:/var/lib/odoo
+      - ./config:/etc/odoo
       - ./custom-addons:/mnt/extra-addons
     environment:
       # - PASSWORD_FILE=/run/secrets/postgresql_password
