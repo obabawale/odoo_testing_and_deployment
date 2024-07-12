@@ -36,7 +36,7 @@ jobs:
       - run:
           name: Run Odoo tests with cov
           command: |
-            docker-compose run --rm odoo odoo-bin -c /etc/odoo/odoo.conf \
+            docker-compose run --rm web odoo-bin -c /etc/odoo/odoo.conf \
             --test-enable
       - run:
           name: Stop Docker Compose
