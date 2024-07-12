@@ -12,17 +12,27 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
+          name: Install Docker Compose
+          environment:
+            COMPOSE_VERSION: 'v2.25.0'
+          command: |
+            curl -sSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o ~/docker-compose
+            mkdir -p ~/.docker/cli-plugins
+            chmod +x ~/docker-compose
+            mv ~/docker-compose ~/.docker/cli-plugins/docker-compose
+
+      - run:
           name: Build Docker Image
           command: docker build -t my-odoo-image .
       - run:
           name: Run Docker Compose
-          command: docker-compose -f docker-compose.yml up -d
+          command: docker compose -f docker-compose.yml up -d
       # - run:
       #     name: Wait for Odoo to start
       #     command: ./scripts/wait-for-it.sh web 8069 --timeout=60 --strict -- echo "Odoo is up"
-      # - run:
-      #     name: Run Tests
-      #     command: docker compose exec web odoo --test-enable --stop-after-init
+      - run:
+          name: Run Tests
+          command: docker compose exec web odoo --test-enable --stop-after-init
       - run:
           name: Stop Docker Compose
           command: docker compose down
