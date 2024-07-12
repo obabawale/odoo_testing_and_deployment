@@ -29,7 +29,7 @@ jobs:
           command: docker compose -f docker-compose.yml up -d
       - run:
           name: Wait for Odoo to start
-          command: ./scripts/wait-for-it.sh web 8069 --timeout=60 --strict -- echo "Odoo is up"
+          command: ./scripts/wait-for-it.sh web:8069 --timeout=60 --strict -- echo "Odoo is up"
       - run:
           name: Run Tests
           command: docker compose exec web odoo --test-enable --stop-after-init
