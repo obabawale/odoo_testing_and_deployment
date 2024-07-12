@@ -29,9 +29,15 @@ jobs:
       - run:
           name: Run Docker Compose
           command: docker compose -f docker-compose.yml up -d
+      # - run:
+      #     name: Run Tests
+      #     command: docker compose exec web odoo --test-enable --stop-after-init
+      # Run Odoo tests
       - run:
-          name: Run Tests
-          command: docker compose exec web odoo --test-enable --stop-after-init
+          name: Run Odoo tests with cov
+          command: |
+            docker-compose run --rm odoo odoo-bin -c /etc/odoo/odoo.conf \
+            --test-enable
       - run:
           name: Stop Docker Compose
           command: docker compose down
