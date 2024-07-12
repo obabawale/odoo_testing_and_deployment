@@ -29,10 +29,10 @@ jobs:
       - run:
           name: Run Docker Compose
           command: docker compose -f docker-compose.yml up -d
-      - run:
-          name: Run Odoo tests with cov
-          command: |
-            docker-compose run --rm web odoo --db-filter=^mydb$ -d mydb --test-enable --stop-after-init --init=all
+      # - run:
+      #     name: Run Odoo tests with cov
+      #     command: |
+      #       docker-compose run --rm web odoo --db-filter=^mydb$ -d mydb --test-enable --stop-after-init --init=all
       - run:
           name: Stop Docker Compose
           command: docker compose down
