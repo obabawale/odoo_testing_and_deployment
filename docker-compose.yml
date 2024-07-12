@@ -1,6 +1,7 @@
 services:
   web:
     build: .
+    container_name: web
     depends_on:
       - db
     ports:
@@ -19,7 +20,7 @@ services:
     command: odoo -c /etc/odoo/odoo.conf
   db:
     image: postgres:15
-    container_name: ob-db
+    container_name: db
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_PASSWORD=odoo
