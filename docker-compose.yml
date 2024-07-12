@@ -1,6 +1,9 @@
 services:
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+
     container_name: web
     depends_on:
       - db
@@ -9,30 +12,20 @@ services:
     volumes:
       - ob-web-data:/var/lib/odoo
       - ./config:/etc/odoo
-      - ./custom-addons:/mnt/extra-addons
     environment:
-      # - PASSWORD_FILE=/run/secrets/postgresql_password
       - PASSWORD_FILE=odoo
       - HOST=db
       - USER=odoo
-    # secrets:
-    #   - postgresql_password
   db:
     image: postgres:15
     container_name: db
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_PASSWORD=odoo
-      # - POSTGRES_PASSWORD_FILE=/run/secrets/postgresql_password
       - POSTGRES_USER=odoo
       - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - ob-db-data:/var/lib/postgresql/data/pgdata
-    # secrets:
-    #   - postgresql_password
 volumes:
   ob-web-data:
   ob-db-data:
-# secrets:
-#   postgresql_password:
-#     file: odoo_pg_pass
