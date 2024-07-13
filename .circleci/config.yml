@@ -1,3 +1,5 @@
+# Experimenting ssh connection again
+
 version: 2.1
 
 executors:
@@ -43,6 +45,9 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+      - add_ssh_keys:
+          fingerprints:
+            - "SHA256:peGvvo+9u/kYNEarxxdtVDIN/82cRu2sNHFkjiOiiD0"
       - run:
           name: Build Docker Image
           command: docker build -t my-odoo-image .
