@@ -45,6 +45,10 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+      - run:
+          name: Fix ssh Could not resolve hostname
+          command: |
+            ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts # Add live server IP to known hosts.
       - add_ssh_keys:
           fingerprints:
             - "SHA256:peGvvo+9u/kYNEarxxdtVDIN/82cRu2sNHFkjiOiiD0"
