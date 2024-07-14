@@ -1,6 +1,6 @@
 services:
   web:
-    image: lekanbabawale/odoo:15.0
+    image: lekanbabawale/odoo15
     build:
       context: .
       dockerfile: ./Dockerfile
