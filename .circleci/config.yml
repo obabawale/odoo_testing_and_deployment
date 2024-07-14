@@ -37,11 +37,6 @@ jobs:
           name: Run Docker Compose
           command: docker compose -f docker-compose.yml up -d
       - run:
-          name: Copy configuration file and custom addons
-          command: |
-            docker compose cp config/odoo.conf web:/etc/odoo
-            docker compose cp odoo_module_testing web:/mnt/extra-addons
-      - run:
           name: Run Odoo tests
           command: |
             docker-compose run --rm web odoo --db-filter=^mydb$ -d mydb --test-enable --stop-after-init -i blogger_app
