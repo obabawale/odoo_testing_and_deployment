@@ -65,7 +65,7 @@ jobs:
           name: Deploy to Production
           command: |
             ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment'
-            sudo chmod +x docker-compose.yml && docker pull $DOCKER_USERNAME/my-odoo-image:latest && docker-compose -f docker-compose.yml up -d'
+            sudo chmod +x docker-compose.yml && docker pull $DOCKER_USERNAME/my-odoo-image:latest && docker-compose -f docker-compose.yml up -d
 
 workflows:
   version: 2
