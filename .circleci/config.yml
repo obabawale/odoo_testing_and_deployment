@@ -30,13 +30,17 @@ jobs:
           command: |
             echo "Updating submodules with the aim of knowing if the custom addons path is copied correctly........."
             git submodule update --init --merge
-            ls -al odoo_module_testing
       - run:
           name: Build Docker Image
           command: docker build -t my-odoo-image .
       - run:
           name: Run Docker Compose
           command: docker compose -f docker-compose.yml up -d
+      - run:
+          name: Copy configuration file and custom addons
+          command: |
+            docker compose cp config/odoo.conf web:/etc/odoo
+            docker compose cp odoo_module_testing web:/mnt/extra-addons
       - run:
           name: Run Odoo tests
           command: |
