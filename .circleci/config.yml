@@ -29,8 +29,8 @@ jobs:
           name: Checkout the contents of the working directory
           command: |
             echo "Updating submodules with the aim of knowing if the custom addons path is copied correctly........."
-            ls -al odoo_module_testing
             git submodule update --remote --merge
+            ls -al odoo_module_testing
       - run:
           name: Build Docker Image
           command: docker build -t my-odoo-image .
