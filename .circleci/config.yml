@@ -22,9 +22,6 @@ jobs:
             mkdir -p ~/.docker/cli-plugins
             chmod +x ~/docker-compose
             mv ~/docker-compose ~/.docker/cli-plugins/docker-compose
-      # - run:
-      #     name: Install netcat
-      #     command: sudo apt-get update && sudo apt-get install -y netcat
       - run:
           name: Update submodule
           command: |
