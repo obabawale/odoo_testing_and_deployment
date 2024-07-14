@@ -1,3 +1,5 @@
+# Experimenting ssh connection again
+
 version: 2.1
 
 executors:
@@ -10,22 +12,32 @@ jobs:
     executor: docker-executor
     steps:
       - checkout
-      - setup_remote_docker
-      - run:
-          name: Build Docker Image
-          command: docker build -t my-odoo-image .
-      - run:
-          name: Run Docker Compose
-          command: docker-compose -f docker-compose.yml up -d
-      - run:
-          name: Wait for Odoo to start
-          command: ./scripts/wait-for-it.sh web:8069 --timeout=60 --strict -- echo "Odoo is up"
-      - run:
-          name: Run Tests
-          command: docker-compose exec web odoo --test-enable --stop-after-init
-      - run:
-          name: Stop Docker Compose
-          command: docker-compose down
+      # - setup_remote_docker
+      # - run:
+      #     name: Install Docker Compose
+      #     environment:
+      #       COMPOSE_VERSION: 'v2.25.0'
+      #     command: |
+      #       curl -sSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o ~/docker-compose
+      #       mkdir -p ~/.docker/cli-plugins
+      #       chmod +x ~/docker-compose
+      #       mv ~/docker-compose ~/.docker/cli-plugins/docker-compose
+      # - run:
+      #     name: Install netcat
+      #     command: sudo apt-get update && sudo apt-get install -y netcat
+      # - run:
+      #     name: Build Docker Image
+      #     command: docker build -t my-odoo-image .
+      # - run:
+      #     name: Run Docker Compose
+      #     command: docker compose -f docker-compose.yml up -d
+      # # - run:
+      # #     name: Run Odoo tests with cov
+      # #     command: |
+      # #       docker-compose run --rm web odoo --db-filter=^mydb$ -d mydb --test-enable --stop-after-init --init=all
+      # - run:
+      #     name: Stop Docker Compose
+      #     command: docker compose down
 
   deploy:
     docker:
@@ -33,6 +45,13 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+      - run:
+          name: Fix ssh Could not resolve hostname
+          command: |
+            ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts # Add live server IP to known hosts.
+      - add_ssh_keys:
+          fingerprints:
+            - "SHA256:peGvvo+9u/kYNEarxxdtVDIN/82cRu2sNHFkjiOiiD0"
       - run:
           name: Build Docker Image
           command: docker build -t my-odoo-image .
@@ -44,7 +63,10 @@ jobs:
             docker push $DOCKER_USERNAME/my-odoo-image:latest
       - run:
           name: Deploy to Production
-          command: ssh admin@178.79.176.243 'docker pull $DOCKER_USERNAME/my-odoo-image:latest && docker-compose -f /path/to/your/docker-compose.yml up -d'
+          command: |
+            ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment && git submodule update --remote --merge && git pull --recurse-submodules'
+            ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment docker pull $DOCKER_USERNAME/my-odoo-image:latest && docker compose -f docker-compose.yml up -d'
+            
 
 workflows:
   version: 2
