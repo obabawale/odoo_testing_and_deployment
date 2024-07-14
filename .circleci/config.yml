@@ -26,6 +26,11 @@ jobs:
           name: Install netcat
           command: sudo apt-get update && sudo apt-get install -y netcat
       - run:
+          name: Checkout the contents of the working directory
+          command: |
+            echo "This is printing out the pwd working directory........."
+            ls -al
+      - run:
           name: Build Docker Image
           command: docker build -t my-odoo-image .
       - run:
