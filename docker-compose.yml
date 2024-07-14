@@ -12,6 +12,7 @@ services:
     volumes:
       - ob-web-data:/var/lib/odoo
       - ./config:/etc/odoo
+      - ./odoo_module_testing:/mnt/extra-addons
     environment:
       - HOST=db
       - USER=odoo
