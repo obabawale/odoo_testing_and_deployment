@@ -65,7 +65,8 @@ jobs:
           name: Deploy to Production
           command: |
             ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment && git submodule update --remote --merge && git pull --recurse-submodules'
-            ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment && docker pull $DOCKER_USERNAME/my-odoo-image:latest && docker compose -f docker-compose.yml up -d'
+            ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment && docker pull $DOCKER_USERNAME/my-odoo-image:latest && ls -al'
+            # ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment && docker pull $DOCKER_USERNAME/my-odoo-image:latest && docker compose -f docker-compose.yml up -d'
             
 
 workflows:
