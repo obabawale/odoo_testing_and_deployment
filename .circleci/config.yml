@@ -56,21 +56,19 @@ jobs:
             - "SHA256:peGvvo+9u/kYNEarxxdtVDIN/82cRu2sNHFkjiOiiD0"
       - run:
           name: Build Docker Image
-          command: docker build -t my-odoo-image .
+          command: docker compose build
       - run:
           name: Push Docker Image
           command: |
             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-            docker tag my-odoo-image $DOCKER_USERNAME/my-odoo-image:latest
-            docker push $DOCKER_USERNAME/my-odoo-image:latest
+            docker push $DOCKER_USERNAME/odoo15:latest
       - run:
           name: Deploy to Production
           command: |
             ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment && git submodule update --remote --merge && git pull --recurse-submodules'
             # ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment && echo $DOCKER_USERNAME && ls -al' find a way to pass $DOCKER_USERNAME as an environment variable
-            ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment && docker pull lekanbabawale/my-odoo-image:latest && docker compose -f docker-compose.yml up -d'
+            ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment && docker pull lekanbabawale/odoo15:latest && docker compose -f docker-compose.yml up -d'
             
-
 workflows:
   version: 2
   test_and_deploy:
