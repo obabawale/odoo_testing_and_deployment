@@ -1,6 +1,3 @@
-[submodule "custom-addons"]
-	path = custom-addons
-	url = git@github.com:obabawale/odoo_module_testing.git
 [submodule "odoo_module_testing"]
 	path = odoo_module_testing
 	url = git@github.com:obabawale/odoo_module_testing.git

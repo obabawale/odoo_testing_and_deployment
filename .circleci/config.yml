@@ -12,32 +12,34 @@ jobs:
     executor: docker-executor
     steps:
       - checkout
-      # - setup_remote_docker
-      # - run:
-      #     name: Install Docker Compose
-      #     environment:
-      #       COMPOSE_VERSION: 'v2.25.0'
-      #     command: |
-      #       curl -sSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o ~/docker-compose
-      #       mkdir -p ~/.docker/cli-plugins
-      #       chmod +x ~/docker-compose
-      #       mv ~/docker-compose ~/.docker/cli-plugins/docker-compose
-      # - run:
-      #     name: Install netcat
-      #     command: sudo apt-get update && sudo apt-get install -y netcat
-      # - run:
-      #     name: Build Docker Image
-      #     command: docker build -t my-odoo-image .
-      # - run:
-      #     name: Run Docker Compose
-      #     command: docker compose -f docker-compose.yml up -d
-      # # - run:
-      # #     name: Run Odoo tests with cov
-      # #     command: |
-      # #       docker-compose run --rm web odoo --db-filter=^mydb$ -d mydb --test-enable --stop-after-init --init=all
-      # - run:
-      #     name: Stop Docker Compose
-      #     command: docker compose down
+      - setup_remote_docker
+      - run:
+          name: Install Docker Compose
+          environment:
+            COMPOSE_VERSION: 'v2.25.0'
+          command: |
+            curl -sSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o ~/docker-compose
+            mkdir -p ~/.docker/cli-plugins
+            chmod +x ~/docker-compose
+            mv ~/docker-compose ~/.docker/cli-plugins/docker-compose
+      - run:
+          name: Update submodule
+          command: |
+            echo "Updating submodules with the aim of knowing if the custom addons path is copied correctly........."
+            git submodule update --init --merge
+      - run:
+          name: Build Docker Image
+          command: docker compose build
+      - run:
+          name: Run Docker Compose
+          command: docker compose up -d
+      - run:
+          name: Run Odoo tests
+          command: |
+            docker-compose run --rm web odoo --db-filter=^mydb$ -d mydb --test-enable --stop-after-init -i blogger_app
+      - run:
+          name: Stop Docker Compose
+          command: docker compose down
 
   deploy:
     docker:
