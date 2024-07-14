@@ -29,10 +29,10 @@ jobs:
             git submodule update --init --merge
       - run:
           name: Build Docker Image
-          command: docker build -t my-odoo-image .
+          command: docker compose build
       - run:
           name: Run Docker Compose
-          command: docker compose -f docker-compose.yml up -d
+          command: docker compose up -d
       - run:
           name: Run Odoo tests
           command: |
