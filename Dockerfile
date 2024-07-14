@@ -1,8 +1,9 @@
 FROM odoo:15.0
 
 USER root
+
 # Copy configuration and addons
-COPY ./config/odoo.conf /etc/odoo/odoo.conf
+COPY ./config/odoo.conf /etc/odoo
 COPY ./odoo_module_testing /mnt/extra-addons
 
 # Set the correct permissions if needed
