@@ -1,9 +1,9 @@
 services:
   web:
+    image: lekanbabawale/odoo:15.0
     build:
       context: .
       dockerfile: ./Dockerfile
-
     container_name: web
     depends_on:
       - db
@@ -13,7 +13,6 @@ services:
       - ob-web-data:/var/lib/odoo
       - ./config:/etc/odoo
     environment:
-      - PASSWORD_FILE=odoo
       - HOST=db
       - USER=odoo
   db:
