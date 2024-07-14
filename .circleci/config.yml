@@ -64,9 +64,8 @@ jobs:
       - run:
           name: Deploy to Production
           command: |
-            ssh $SSH_USER@$SSH_HOST  'ls && pwd '
             # ssh $SSH_USER@$SSH_HOST 'docker pull $DOCKER_USERNAME/my-odoo-image:latest && docker-compose -f /path/to/your/docker-compose.yml up -d'
-            # ssh admin@178.79.176.243 'docker pull $DOCKER_USERNAME/my-odoo-image:latest && docker compose up -d'
+            ssh admin@178.79.176.243 'cd odoo_testing_and_deployment && docker pull $DOCKER_USERNAME/my-odoo-image:latest && docker compose up -d'
 
 workflows:
   version: 2
