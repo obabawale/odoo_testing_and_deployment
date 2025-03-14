@@ -1,6 +1,6 @@
 services:
   web:
-    image: lekanbabawale/oaf-odoo17
+    image: lekanbabawale/oaf-demo
     build:
       context: .
       dockerfile: ./Dockerfile
