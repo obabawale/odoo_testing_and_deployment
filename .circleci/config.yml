@@ -78,7 +78,8 @@ jobs:
             SSH_HOST=${SSH_HOST}
             DOCKER_USERNAME=${DOCKER_USERNAME}
             ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST \<< EOF
-              cd /home/admin/odoo_testing_deployment  # **Absolute path is crucial**
+              su - admin
+              cd /home/admin/odoo_testing_and_deployment  # **Absolute path is crucial**
               git pull
               docker pull \$DOCKER_USERNAME/oaf-demo:latest # Escape $ for remote execution
               docker compose -f docker-compose.yml up -d
