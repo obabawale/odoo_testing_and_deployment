@@ -1,5 +1,3 @@
-# Experimenting ssh connection again
-
 version: 2.1
 
 executors:
@@ -16,30 +14,32 @@ jobs:
       - run:
           name: Install Docker Compose
           environment:
-            COMPOSE_VERSION: 'v2.25.0'
+            COMPOSE_VERSION: "v2.25.0"
           command: |
             curl -sSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o ~/docker-compose
             mkdir -p ~/.docker/cli-plugins
             chmod +x ~/docker-compose
             mv ~/docker-compose ~/.docker/cli-plugins/docker-compose
       - run:
-          name: Update submodule
-          command: |
-            echo "Updating submodules with the aim of knowing if the custom addons path is copied correctly........."
-            git submodule update --init --merge
-      - run:
           name: Build Docker Image
-          command: docker compose build
+          command: docker compose -f docker-compose.yml build
       - run:
           name: Run Docker Compose
-          command: docker compose up -d
+          environment:
+            POSTGRES_PASSWORD: ${DATABASE_PASSWORD} # From CircleCI secret
+          command: |
+            docker compose -f docker-compose.yml up -d
+            docker exec db bash -c "echo \"$POSTGRES_PASSWORD\" > /var/lib/postgresql/data/pgdata/postgresql_password && chmod 600 /var/lib/postgresql/data/pgdata/postgresql_password"
+            docker exec web bash -c "echo \"$POSTGRES_PASSWORD\" > /var/lib/odoo/.odoo_pg_pass && chmod 600 /var/lib/odoo/.odoo_pg_pass" #If you need it in web container
       - run:
           name: Run Odoo tests
-          command: |
-            docker-compose run --rm web odoo --db-filter=^mydb$ -d mydb --test-enable --stop-after-init -i blogger_app
+          command:
+            # Run Odoo tests
+            # docker compose -f docker-compose.yml run --rm web odoo --db-filter=^mydb$ -d mydb --test-enable --stop-after-init -i certum_service
+            docker compose ps # placeholder
       - run:
           name: Stop Docker Compose
-          command: docker compose down
+          command: docker compose -f docker-compose.yml down
 
   deploy:
     docker:
@@ -50,7 +50,7 @@ jobs:
       - run:
           name: Install Docker Compose
           environment:
-            COMPOSE_VERSION: 'v2.25.0'
+            COMPOSE_VERSION: "v2.25.0"
           command: |
             curl -sSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o ~/docker-compose
             mkdir -p ~/.docker/cli-plugins
@@ -59,34 +59,40 @@ jobs:
       - run:
           name: Fix ssh Could not resolve hostname
           command: |
-            ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts # Add live server IP to known hosts.
+            ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
       - add_ssh_keys:
           fingerprints:
-            - "SHA256:peGvvo+9u/kYNEarxxdtVDIN/82cRu2sNHFkjiOiiD0"
+            - "SHA256:pcb1rXI4++zrqYmiNWUwnzWxpuzvBpee7Xi+yZZuYtU"
       - run:
           name: Build Docker Image
-          command: docker compose build
+          command: docker compose -f docker-compose.yml build
       - run:
           name: Push Docker Image
           command: |
             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-            docker push $DOCKER_USERNAME/odoo15:latest
+            docker push $DOCKER_USERNAME/oaf-demo:latest  # Or your image name
       - run:
           name: Deploy to Production
           command: |
-            ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment && git submodule update --remote --merge && git pull --recurse-submodules'
-            # ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment && echo $DOCKER_USERNAME && ls -al' find a way to pass $DOCKER_USERNAME as an environment variable
-            ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment && docker pull lekanbabawale/odoo15:latest && docker compose -f docker-compose.yml up -d'
-            
+            SSH_USER=${SSH_USER}  # Export variables for use in the here document
+            SSH_HOST=${SSH_HOST}
+            DOCKER_USERNAME=${DOCKER_USERNAME}
+            ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST \<< EOF
+              cd /home/billy/oaf-demo  # **Absolute path is crucial**
+              git pull
+              docker pull \$DOCKER_USERNAME/oaf-demo:latest # Escape $ for remote execution
+              docker compose -f docker-compose.yml up -d
+            EOF
+
 workflows:
   version: 2
   test_and_deploy:
     jobs:
       - test
-      # - deploy:
-      #     requires:
-      #       - test
-      #     filters:
-      #       branches:
-      #         only:
-      #           - main
+      - deploy:
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - main
