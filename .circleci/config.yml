@@ -72,6 +72,13 @@ jobs:
             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
             docker push $DOCKER_USERNAME/oaf-demo:latest  # Or your image name
       - run:
+          name: Configure SSH to Use Admin User
+          command: |
+            mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
+            echo -e "Host $SSH_HOST\n  User admin\n  IdentityFile ~/.ssh/id_rsa\n  StrictHostKeyChecking no" >> ~/.ssh/config
+            chmod 600 ~/.ssh/config
+      - run:
           name: Deploy to Production
           command: |
             SSH_USER=${SSH_USER}  # Export variables for use in the here document
