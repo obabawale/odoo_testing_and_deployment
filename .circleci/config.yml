@@ -107,7 +107,7 @@ jobs:
             ODOO_PASSWORD: ${DATABASE_PASSWORD} # Adjust if needed
           command: |
             SSH_USER=$SSH_USER SSH_HOST=$SSH_HOST DOCKER_USERNAME=$DOCKER_USERNAME ODOO_DB=$ODOO_DB ODOO_USER=$ODOO_USER ODOO_PASSWORD=$ODOO_PASSWORD bash -c '
-              ssh $SSH_USER@$SSH_HOST
+              ssh SSH_USER@SSH_HOST
               cd /home/admin/odoo_testing_and_deployment
 
               echo $(pwd)
