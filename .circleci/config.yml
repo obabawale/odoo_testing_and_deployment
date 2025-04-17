@@ -97,42 +97,44 @@ jobs:
               su - admin
               cd /home/admin/odoo_testing_and_deployment
 
+              echo $(pwd)
+
               git pull
               docker pull $DOCKER_USERNAME/$IMAGE:latest
 
-              INSTALL_MODULES=""
-              if [ -f modules_to_install.txt ]; then
-                INSTALL_MODULES="-i $(cat modules_to_install.txt | tr "\\n" ",)"
-                echo "Modules to install: $INSTALL_MODULES"
-              fi
+              # INSTALL_MODULES=""
+              # if [ -f modules_to_install.txt ]; then
+              #   INSTALL_MODULES="-i $(cat modules_to_install.txt | tr "\\n" ",)"
+              #   echo "Modules to install: $INSTALL_MODULES"
+              # fi
 
-              UPGRADE_MODULES=""
-              if [ -f modules_to_upgrade.txt ]; then
-                UPGRADE_MODULES="-u $(cat modules_to_upgrade.txt | tr "\\n" ",)"
-                echo "Modules to upgrade: $UPGRADE_MODULES"
-              fi
+              # UPGRADE_MODULES=""
+              # if [ -f modules_to_upgrade.txt ]; then
+              #   UPGRADE_MODULES="-u $(cat modules_to_upgrade.txt | tr "\\n" ",)"
+              #   echo "Modules to upgrade: $UPGRADE_MODULES"
+              # fi
 
-              ODOO_COMMAND=""
-              if [ -n "$INSTALL_MODULES" ]; then
-                ODOO_COMMAND="$ODOO_COMMAND $INSTALL_MODULES --stop-after-init"
-              fi
+              # ODOO_COMMAND=""
+              # if [ -n "$INSTALL_MODULES" ]; then
+              #   ODOO_COMMAND="$ODOO_COMMAND $INSTALL_MODULES --stop-after-init"
+              # fi
 
-              if [ -n "$UPGRADE_MODULES" ]; then
-                ODOO_COMMAND="$ODOO_COMMAND $UPGRADE_MODULES --stop-after-init"
-              fi
+              # if [ -n "$UPGRADE_MODULES" ]; then
+              #   ODOO_COMMAND="$ODOO_COMMAND $UPGRADE_MODULES --stop-after-init"
+              # fi
 
-              if [ -n "$ODOO_COMMAND" ]; then
-                echo "Executing Odoo command: docker compose exec web odoo -d \\"$ODOO_DB\\" $ODOO_COMMAND --addons-path=/mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons -r \\"$ODOO_USER\\" -w \\"$ODOO_PASSWORD\\""
-                docker compose exec web odoo -d "$ODOO_DB" $ODOO_COMMAND -r "$ODOO_USER" -w "$ODOO_PASSWORD"
-              else
-                echo "No modules to install or upgrade."
-              fi
+              # if [ -n "$ODOO_COMMAND" ]; then
+              #   echo "Executing Odoo command: docker compose exec web odoo -d \\"$ODOO_DB\\" $ODOO_COMMAND --addons-path=/mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons -r \\"$ODOO_USER\\" -w \\"$ODOO_PASSWORD\\""
+              #   docker compose exec web odoo -d "$ODOO_DB" $ODOO_COMMAND -r "$ODOO_USER" -w "$ODOO_PASSWORD"
+              # else
+              #   echo "No modules to install or upgrade."
+              # fi
 
-              docker compose -f docker-compose.yml restart web
+              # docker compose -f docker-compose.yml restart web
 
-              # Remove the module list files
-              rm -f modules_to_install.txt
-              rm -f modules_to_upgrade.txt
+              # # Remove the module list files
+              # rm -f modules_to_install.txt
+              # rm -f modules_to_upgrade.txt
             '
 
 workflows:
