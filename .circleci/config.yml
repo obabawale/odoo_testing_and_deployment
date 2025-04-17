@@ -83,18 +83,31 @@ jobs:
             chmod 700 ~/.ssh
             echo -e "Host $SSH_HOST\n  User admin\n  IdentityFile ~/.ssh/id_rsa" >> ~/.ssh/config
             chmod 600 ~/.ssh/config
+      # - run:
+      #     name: Deploy to Staging Environment
+      #     command: |
+      #       SSH_USER=${SSH_USER}  # Export variables for use in the here document
+      #       SSH_HOST=${SSH_HOST}
+      #       DOCKER_USERNAME=${DOCKER_USERNAME}
+      #       ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST \<< EOF
+      #         cd /home/billy/3cs-erp  # **Absolute path is crucial**
+      #         git pull
+      #         docker pull \$DOCKER_USERNAME/3cs-erp:latest # Escape $ for remote execution
+      #         docker compose -f docker-compose.yml down
+      #         docker compose -f docker-compose.yml up -d
+      #       EOF
       - run:
           name: Read Module Lists and Execute Odoo Commands
           environment:
             SSH_USER: ${SSH_USER}
             SSH_HOST: ${SSH_HOST}
             DOCKER_USERNAME: ${DOCKER_USERNAME}
-            ODOO_DB: odoo  # Adjust if needed
-            ODOO_USER: odoo  # Adjust if needed
+            ODOO_DB: odoo # Adjust if needed
+            ODOO_USER: odoo # Adjust if needed
             ODOO_PASSWORD: ${DATABASE_PASSWORD} # Adjust if needed
           command: |
             SSH_USER=$SSH_USER SSH_HOST=$SSH_HOST DOCKER_USERNAME=$DOCKER_USERNAME ODOO_DB=$ODOO_DB ODOO_USER=$ODOO_USER ODOO_PASSWORD=$ODOO_PASSWORD bash -c '
-              su - admin
+              ssh $SSH_USER@$SSH_HOST
               cd /home/admin/odoo_testing_and_deployment
 
               echo $(pwd)
