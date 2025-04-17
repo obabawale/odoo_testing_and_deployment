@@ -70,6 +70,8 @@ jobs:
           name: Push Docker Image
           command: |
             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+            docker tag $DOCKER_USERNAME/oaf-demo:latest $DOCKER_USERNAME/oaf-demo:$CIRCLE_SHA1
+            docker push $DOCKER_USERNAME/oaf-demo:$CIRCLE_SHA1
             docker push $DOCKER_USERNAME/oaf-demo:latest  # Or your image name
       - run:
           name: Configure SSH to Use Admin User
@@ -78,19 +80,57 @@ jobs:
             chmod 700 ~/.ssh
             echo -e "Host $SSH_HOST\n  User admin\n  IdentityFile ~/.ssh/id_rsa\n  StrictHostKeyChecking no" >> ~/.ssh/config
             chmod 600 ~/.ssh/config
-      - run:
-          name: Deploy to Production
-          command: |
-            SSH_USER=${SSH_USER}  # Export variables for use in the here document
-            SSH_HOST=${SSH_HOST}
-            DOCKER_USERNAME=${DOCKER_USERNAME}
-            ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST \<< EOF
-              su - admin
-              cd /home/admin/odoo_testing_and_deployment  # **Absolute path is crucial**
-              git pull
-              docker pull \$DOCKER_USERNAME/oaf-demo:latest # Escape $ for remote execution
-              docker compose -f docker-compose.yml up -d
-            EOF
+      # - run:
+      #     name: Read Module Lists and Execute Odoo Commands
+      #     environment:
+      #       SSH_USER: ${SSH_USER}
+      #       SSH_HOST: ${SSH_HOST}
+      #       DOCKER_USERNAME: ${DOCKER_USERNAME}
+      #       ODOO_DB: odoo  # Adjust if needed
+      #       ODOO_USER: odoo  # Adjust if needed
+      #       ODOO_PASSWORD: ${DATABASE_PASSWORD} # Adjust if needed
+      #     command: |
+      #       SSH_USER=$SSH_USER SSH_HOST=$SSH_HOST DOCKER_USERNAME=$DOCKER_USERNAME ODOO_DB=$ODOO_DB ODOO_USER=$ODOO_USER ODOO_PASSWORD=$ODOO_PASSWORD bash -c '
+      #         su - admin
+      #         cd /home/admin/odoo_testing_and_deployment
+
+      #         git pull
+      #         docker pull $DOCKER_USERNAME/oaf-demo:latest
+
+      #         INSTALL_MODULES=""
+      #         if [ -f modules_to_install.txt ]; then
+      #           INSTALL_MODULES="-i $(cat modules_to_install.txt | tr "\\n" ",)"
+      #           echo "Modules to install: $INSTALL_MODULES"
+      #         fi
+
+      #         UPGRADE_MODULES=""
+      #         if [ -f modules_to_upgrade.txt ]; then
+      #           UPGRADE_MODULES="-u $(cat modules_to_upgrade.txt | tr "\\n" ",)"
+      #           echo "Modules to upgrade: $UPGRADE_MODULES"
+      #         fi
+
+      #         ODOO_COMMAND=""
+      #         if [ -n "$INSTALL_MODULES" ]; then
+      #           ODOO_COMMAND="$ODOO_COMMAND $INSTALL_MODULES --stop-after-init"
+      #         fi
+
+      #         if [ -n "$UPGRADE_MODULES" ]; then
+      #           ODOO_COMMAND="$ODOO_COMMAND $UPGRADE_MODULES --stop-after-init"
+      #         fi
+
+      #         if [ -n "$ODOO_COMMAND" ]; then
+      #           echo "Executing Odoo command: docker compose exec web odoo -d \\"$ODOO_DB\\" $ODOO_COMMAND --addons-path=/mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons -r \\"$ODOO_USER\\" -w \\"$ODOO_PASSWORD\\""
+      #           docker compose exec web odoo -d "$ODOO_DB" $ODOO_COMMAND --addons-path=/mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons -r "$ODOO_USER" -w "$ODOO_PASSWORD"
+      #         else
+      #           echo "No modules to install or upgrade."
+      #         fi
+
+      #         docker compose -f docker-compose.yml restart web
+
+      #         # Remove the module list files
+      #         rm -f modules_to_install.txt
+      #         rm -f modules_to_upgrade.txt
+      #       '
 
 workflows:
   version: 2
