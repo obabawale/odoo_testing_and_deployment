@@ -57,12 +57,15 @@ jobs:
             chmod +x ~/docker-compose
             mv ~/docker-compose ~/.docker/cli-plugins/docker-compose
       - run:
-          name: Fix ssh Could not resolve hostname
+          name: Add Linode SSH keys
           command: |
-            ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts
+            mkdir -p ~/.ssh
+            cat \<<EOF >> ~/.ssh/known_hosts
+            139.162.208.216 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCBgJRBFEyKDKBsE4pqx3cKEkJpdKTF3C8fVUEtlJMQFo1Dn84XwPWgv3NFM+DcJ+8//G0CNM4nE2LvXtQrH4u4PqTks4RE8txmzUMMS4naliO448OvqtPs2m3wRRExNCeK6FLRN71/Eh71Al6BchQaCZ62YVho0NfQ5kYia3KGe7dM1f4mT6/SxaYkGJrbKo6fHey9DjVjHgbxGEHPY5SJ6db/GYLMz0aqzWKiAUg+saeNZaKZnAUK66eyLoMuIblWcmUq3FWPJnwLJPowS4jD+z7SXZButfpPkIZAtUpHA2zCxWJp+wE9ibwm0OmBGp5Z/p3BnJPxgljo9JjFjEzuYBeymkVyK04NzfZTuXPGJs+8aeLFo9fMMNhZIAjzhlW8uIcPldM8k/f+qUXHPbytkgG6/Msb5F3eCKkPM3l6A++DvMyDVOh9/LmPOsFTOYmsrLu145G4TRRCq3q2/SFMVSAV4qsPOxBelXCnpsqL87gOqkK5aeZPL0p7kG70id0=
+            EOF
       - add_ssh_keys:
           fingerprints:
-            - "SHA256:pcb1rXI4++zrqYmiNWUwnzWxpuzvBpee7Xi+yZZuYtU"
+            - "SHA256:SLfLu3D8kfDvWMWoqhfJbE039Sxp/06Doyz5xjNLHsI"
       - run:
           name: Build Docker Image
           command: docker compose -f docker-compose.yml build
@@ -70,9 +73,9 @@ jobs:
           name: Push Docker Image
           command: |
             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-            docker tag $DOCKER_USERNAME/oaf-demo:latest $DOCKER_USERNAME/oaf-demo:$CIRCLE_SHA1
-            docker push $DOCKER_USERNAME/oaf-demo:$CIRCLE_SHA1
-            docker push $DOCKER_USERNAME/oaf-demo:latest  # Or your image name
+            docker tag $DOCKER_USERNAME/$IMAGE:latest $DOCKER_USERNAME/$IMAGE:$CIRCLE_SHA1
+            docker push $DOCKER_USERNAME/$IMAGE:$CIRCLE_SHA1
+            docker push $DOCKER_USERNAME/$IMAGE:latest  # Or your image name
       - run:
           name: Configure SSH to Use Admin User
           command: |
@@ -95,7 +98,7 @@ jobs:
       #         cd /home/admin/odoo_testing_and_deployment
 
       #         git pull
-      #         docker pull $DOCKER_USERNAME/oaf-demo:latest
+      #         docker pull $DOCKER_USERNAME/$IMAGE:latest
 
       #         INSTALL_MODULES=""
       #         if [ -f modules_to_install.txt ]; then
