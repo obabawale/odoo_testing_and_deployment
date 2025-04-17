@@ -101,14 +101,14 @@ jobs:
           environment:
             SSH_USER: ${SSH_USER}
             SSH_HOST: ${SSH_HOST}
-            DOCKER_USERNAME: ${DOCKER_USERNAME}
+            DOCKER_USERNAME: $DOCKER_USERNAME
             ODOO_DB: odoo # Adjust if needed
             ODOO_USER: odoo # Adjust if needed
-            ODOO_PASSWORD: ${DATABASE_PASSWORD} # Adjust if needed
+            ODOO_PASSWORD: $DATABASE_PASSWORD # Adjust if needed
           command: |
             SSH_USER=$SSH_USER SSH_HOST=$SSH_HOST DOCKER_USERNAME=$DOCKER_USERNAME ODOO_DB=$ODOO_DB ODOO_USER=$ODOO_USER ODOO_PASSWORD=$ODOO_PASSWORD bash -c '
               echo "This is before connecting to the server"
-              echo "$SSH_USER"
+              echo $SSH_USER
               # ssh SSH_USER@SSH_HOST
               # cd /home/admin/odoo_testing_and_deployment
 
