@@ -1,3 +1,0 @@
-[submodule "odoo_module_testing"]
-	path = odoo_module_testing
-	url = git@github.com:obabawale/odoo_module_testing.git
