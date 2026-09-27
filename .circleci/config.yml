@@ -1,3 +1,5 @@
+# Experimenting ssh connection again
+
 version: 2.1
 
 executors:
@@ -14,31 +16,30 @@ jobs:
       - run:
           name: Install Docker Compose
           environment:
-            COMPOSE_VERSION: "v2.25.0"
+            COMPOSE_VERSION: 'v2.25.0'
           command: |
             curl -sSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o ~/docker-compose
             mkdir -p ~/.docker/cli-plugins
             chmod +x ~/docker-compose
             mv ~/docker-compose ~/.docker/cli-plugins/docker-compose
       - run:
+          name: Pull Latest Update
+          command: |
+            echo "Pulling latest update"
+            git pull
+      - run:
           name: Build Docker Image
-          command: docker compose -f docker-compose.yml build
+          command: docker compose build
       - run:
           name: Run Docker Compose
-          command: |
-            POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-            docker compose -f docker-compose.yml up -d
-            docker exec db bash -c "echo \"$POSTGRES_PASSWORD\" > /var/lib/postgresql/data/pgdata/postgresql_password && chmod 600 /var/lib/postgresql/data/pgdata/postgresql_password"
-            docker exec web bash -c "echo \"$POSTGRES_PASSWORD\" > /var/lib/odoo/.odoo_pg_pass && chmod 600 /var/lib/odoo/.odoo_pg_pass" #If you need it in web container
+          command: docker compose up -d
       - run:
           name: Run Odoo tests
-          command:
-            # Run Odoo tests
-            # docker compose -f docker-compose.yml run --rm web odoo --db-filter=^mydb$ -d mydb --test-enable --stop-after-init -i certum_service
-            docker compose ps # placeholder
+          command: |
+            docker-compose run --rm web odoo --db-filter=^mydb$ -d mydb --test-enable --stop-after-init -i blogger_app
       - run:
           name: Stop Docker Compose
-          command: docker compose -f docker-compose.yml down
+          command: docker compose down
 
   deploy:
     docker:
@@ -49,116 +50,42 @@ jobs:
       - run:
           name: Install Docker Compose
           environment:
-            COMPOSE_VERSION: "v2.25.0"
+            COMPOSE_VERSION: 'v2.25.0'
           command: |
             curl -sSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o ~/docker-compose
             mkdir -p ~/.docker/cli-plugins
             chmod +x ~/docker-compose
             mv ~/docker-compose ~/.docker/cli-plugins/docker-compose
       - run:
-          name: Add Linode SSH keys
+          name: Fix ssh Could not resolve hostname
           command: |
-            mkdir -p ~/.ssh
-            cat \<<EOF >> ~/.ssh/known_hosts
-            139.162.208.216 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCBgJRBFEyKDKBsE4pqx3cKEkJpdKTF3C8fVUEtlJMQFo1Dn84XwPWgv3NFM+DcJ+8//G0CNM4nE2LvXtQrH4u4PqTks4RE8txmzUMMS4naliO448OvqtPs2m3wRRExNCeK6FLRN71/Eh71Al6BchQaCZ62YVho0NfQ5kYia3KGe7dM1f4mT6/SxaYkGJrbKo6fHey9DjVjHgbxGEHPY5SJ6db/GYLMz0aqzWKiAUg+saeNZaKZnAUK66eyLoMuIblWcmUq3FWPJnwLJPowS4jD+z7SXZButfpPkIZAtUpHA2zCxWJp+wE9ibwm0OmBGp5Z/p3BnJPxgljo9JjFjEzuYBeymkVyK04NzfZTuXPGJs+8aeLFo9fMMNhZIAjzhlW8uIcPldM8k/f+qUXHPbytkgG6/Msb5F3eCKkPM3l6A++DvMyDVOh9/LmPOsFTOYmsrLu145G4TRRCq3q2/SFMVSAV4qsPOxBelXCnpsqL87gOqkK5aeZPL0p7kG70id0=
-            EOF
+            ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts # Add live server IP to known hosts.
       - add_ssh_keys:
           fingerprints:
-            - "SHA256:SLfLu3D8kfDvWMWoqhfJbE039Sxp/06Doyz5xjNLHsI"
+            - "SHA256:peGvvo+9u/kYNEarxxdtVDIN/82cRu2sNHFkjiOiiD0"
       - run:
           name: Build Docker Image
-          command: docker compose -f docker-compose.yml build
+          command: docker compose build
       - run:
           name: Push Docker Image
           command: |
             docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-            docker tag $DOCKER_USERNAME/$IMAGE:latest $DOCKER_USERNAME/$IMAGE:$CIRCLE_SHA1
-            docker push $DOCKER_USERNAME/$IMAGE:$CIRCLE_SHA1
-            docker push $DOCKER_USERNAME/$IMAGE:latest  # Or your image name
+            docker push $DOCKER_USERNAME/odoo15:latest
       - run:
-          name: Configure SSH to Use Admin User
+          name: Deploy to Production
           command: |
-            mkdir -p ~/.ssh
-            chmod 700 ~/.ssh
-            echo -e "Host $SSH_HOST\n  User admin\n  IdentityFile ~/.ssh/id_rsa" >> ~/.ssh/config
-            chmod 600 ~/.ssh/config
-      - run:
-          name: Deploy to Staging Environment
-          command: |
-            SSH_USER=${SSH_USER}  # Export variables for use in the here document
-            SSH_HOST=${SSH_HOST}
-            DOCKER_USERNAME=${DOCKER_USERNAME}
-            ssh $SSH_USER@$SSH_HOST \<< EOF
-              cd `echo $HOME`
-              # TODO: work on cloning the project if it does not exist
-              git pull
-              docker pull \$DOCKER_USERNAME/lekanbabawale:latest # Escape $ for remote execution
-              docker compose -f docker-compose.yml down
-              docker compose -f docker-compose.yml up -d
-            EOF
-      - run:
-          name: Read Module Lists and Execute Odoo Commands
-          command: |
-            SSH_USER=${SSH_USER}
-            SSH_HOST=${SSH_HOST}
-            DOCKER_USERNAME=$DOCKER_USERNAME
-            ODOO_DB=odoo # Adjust if needed
-            ODOO_USER=odoo # Adjust if needed
-            ODOO_PASSWORD=$DATABASE_PASSWORD # Adjust if needed
-            SSH_USER=$SSH_USER SSH_HOST=$SSH_HOST DOCKER_USERNAME=$DOCKER_USERNAME ODOO_DB=$ODOO_DB ODOO_USER=$ODOO_USER ODOO_PASSWORD=$ODOO_PASSWORD bash -c '
-              echo "This is before connecting to the server"
-              echo $SSH_USER
-              # ssh SSH_USER@SSH_HOST
-              # cd /home/admin/odoo_testing_and_deployment
-
-              # echo $(pwd)
-
-              # git pull
-              # docker pull $DOCKER_USERNAME/$IMAGE:latest
-
-              # INSTALL_MODULES=""
-              # if [ -f modules_to_install.txt ]; then
-              #   INSTALL_MODULES="-i $(cat modules_to_install.txt | tr "\\n" ",)"
-              #   echo "Modules to install: $INSTALL_MODULES"
-              # fi
-
-              # UPGRADE_MODULES=""
-              # if [ -f modules_to_upgrade.txt ]; then
-              #   UPGRADE_MODULES="-u $(cat modules_to_upgrade.txt | tr "\\n" ",)"
-              #   echo "Modules to upgrade: $UPGRADE_MODULES"
-              # fi
-
-              # ODOO_COMMAND=""
-              # if [ -n "$INSTALL_MODULES" ]; then
-              #   ODOO_COMMAND="$ODOO_COMMAND $INSTALL_MODULES --stop-after-init"
-              # fi
-
-              # if [ -n "$UPGRADE_MODULES" ]; then
-              #   ODOO_COMMAND="$ODOO_COMMAND $UPGRADE_MODULES --stop-after-init"
-              # fi
-
-              # if [ -n "$ODOO_COMMAND" ]; then
-              #   echo "Executing Odoo command: docker compose exec web odoo -d \\"$ODOO_DB\\" $ODOO_COMMAND --addons-path=/mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons -r \\"$ODOO_USER\\" -w \\"$ODOO_PASSWORD\\""
-              #   docker compose exec web odoo -d "$ODOO_DB" $ODOO_COMMAND -r "$ODOO_USER" -w "$ODOO_PASSWORD"
-              # else
-              #   echo "No modules to install or upgrade."
-              # fi
-
-              # docker compose -f docker-compose.yml restart web
-
-              # # Remove the module list files
-              # rm -f modules_to_install.txt
-              # rm -f modules_to_upgrade.txt
-            '
-
+            ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment && git pull'
+            # ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment && echo $DOCKER_USERNAME && ls -al' find a way to pass $DOCKER_USERNAME as an environment variable
+            ssh $SSH_USER@$SSH_HOST 'cd odoo_testing_and_deployment && docker pull lekanbabawale/odoo15:latest && docker compose -f docker-compose.yml up -d'
+            
 workflows:
   version: 2
   test_and_deploy:
     jobs:
-      # - test
+      - test
       - deploy:
-          # requires:
-          #   - test
+          requires:
+            - test
           filters:
             branches:
               only:

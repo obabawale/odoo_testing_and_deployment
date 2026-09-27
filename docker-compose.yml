@@ -1,6 +1,10 @@
 services:
   web:
+<<<<<<< HEAD
     image: lekanbabawale/oaf-demo
+=======
+    image: lekanbabawale/odoo15
+>>>>>>> dev
     build:
       context: .
       dockerfile: ./Dockerfile
