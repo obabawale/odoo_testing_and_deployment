@@ -1,0 +1,29 @@
+services:
+  web:
+    image: lekanbabawale/odoo15
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: web
+    depends_on:
+      - db
+    ports:
+      - "8069:8069"
+    volumes:
+      - ob-web-data:/var/lib/odoo
+    environment:
+      - HOST=db
+      - USER=odoo
+  db:
+    image: postgres:15
+    container_name: db
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=odoo
+      - POSTGRES_USER=odoo
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ob-db-data:/var/lib/postgresql/data/pgdata
+volumes:
+  ob-web-data:
+  ob-db-data:

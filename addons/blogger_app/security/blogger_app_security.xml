@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <data>
+    
+        <record id="category_root_blog_app" model="ir.module.category">
+            <field name="name">Blog</field>
+            <field name="name">Blog Application</field>
+        </record>
+        
+        <record id="category_blog_app" model="ir.module.category">
+            <field name="name">Blog</field>
+            <field name="description">Blog Application</field>
+            <field name="parent_id" ref="category_root_blog_app"/>
+        </record>
+        
+        <record id="group_blog_user" model="res.groups">
+            <field name="name">User</field>
+            <field name="category_id" ref="category_blog_app" />
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]" />
+            <field name="users" eval="[(4, ref('base.user_admin'))]" />
+        </record>
+        
+        <record id="group_blog_manager" model="res.groups">
+            <field name="name">Manager</field>
+            <field name="category_id" ref="category_blog_app" />
+            <field name="implied_ids" eval="[(4, ref('blogger_app.group_blog_user'))]" />
+            <field name="users" eval="[(4, ref('base.user_admin'))]" />
+        </record>
+   
+    </data>
+    
+</odoo>
